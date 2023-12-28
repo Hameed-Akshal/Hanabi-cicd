@@ -20,7 +20,7 @@ jobs:
      run: pip install bandit
 
    - name: Run Bandit Scan
-     run: bandit -ll -ii -r . -f json -o bandit-report.json
+     run: bandit -ll -ii -r . -f json -o bandit-report.json -vv
 
    - name: Upload Artifact
      uses: actions/upload-artifact@v3
@@ -49,6 +49,8 @@ jobs:
      run: |
        curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
        sh install-scout.sh
+
+
 
        echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
 
