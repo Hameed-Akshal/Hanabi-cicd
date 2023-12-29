@@ -71,7 +71,7 @@ Used python 3.8 version and chose rc-slim in order to reduce the size of the doc
       name: bandit-findings
       path: bandit-report.json
    ```
-   This GitHub Actions workflow checks out the code, sets up a Python environment, installs Bandit, runs a Bandit scan on the Python code, and then uploads the scan results as an artifact named bandit-findings. This workflow is useful for integrating security checks into your continuous integration process. Adjustments can be made based on specific project requirements and configurations.
+   This GitHub Actions workflow checks Python code for security issues using Bandit, saving the results as an artifact. It helps ensure the project's security during development.
 
    ```
     image_scan:
@@ -98,15 +98,21 @@ Used python 3.8 version and chose rc-slim in order to reduce the size of the doc
        echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
 
        docker scout quickview
-       
-       docker scout cves
+        
+       docker scout cves 2> error_list.txt
+
+    - name: Upload Error List Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: error-list
+        path: error_list.txt
 
    ```
-   This GitHub Actions workflow checks out the code, sets up Docker, builds a Docker image, and then performs a security scan using Docker Scout. Adjustments can be made based on specific project requirements and configurations. Ensure that the necessary secrets (like REPO_USER and REPO_PASSWORD) are configured in the GitHub repository settings.
+   The above workflow performs a security scan using Docker Scout. Scans vulnerabilities of dockerfile layer by layer, saving the results as an artifact. It helps ensure the project's security during development.
 
    ```
-   push:
-    name: Tag Image and Push Image 
+    push:
+    name: Build Image and Push Image 
     runs-on: ubuntu-latest
     needs: image_scan
   
@@ -119,19 +125,20 @@ Used python 3.8 version and chose rc-slim in order to reduce the size of the doc
        with:
         docker_version: '20.10.7'
   
-     - name: Push Docker Image
+     - name: Build and Push Docker Image with build tag
        run: |
+        docker build -f Dockerfile -t hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER .
         echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
         docker push  hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER
        
-     - name: Tag and Push Docker Image with built tag
+     - name: Tag and Push Docker Image with latest tag
        run: |
         echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
         docker tag  hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER hameedakshal/hanabi-py:latest
         docker push hameedakshal/hanabi-py:latest
 
    ```
-   This GitHub Actions workflow checks out the code, sets up Docker, and then pushes the Docker image to a Docker registry. It includes steps to push the image with a specific tag ($GITHUB_RUN_NUMBER) and also with the latest tag. Ensure that the necessary secrets (like REPO_USER and REPO_PASSWORD) are configured in the GitHub repository settings. Adjustments can be made based on specific project requirements and configurations.
+   The above GitHub workflow uses Docker to package and share code. It builds and pushes two versions – one with a specific tag and another with the latest tag
 
    ```
    deploy:
@@ -161,11 +168,10 @@ Used python 3.8 version and chose rc-slim in order to reduce the size of the doc
             eb init -r us-east-1 -p docker Hanabi-demo
             eb deploy Hanabi-demo-env 
    ```
-   This GitHub Actions workflow checks out the code, installs Python, AWS CLI, and Elastic Beanstalk CLI, and then deploys a Dockerized application to AWS Elastic Beanstalk. Adjustments can be made based on specific project requirements and configurations. Ensure that the necessary secrets (AWS credentials) are configured in the GitHub repository settings.
+   The above GitHub workflow deploys code to Amazon Elastic Beanstalk (EBS) once a push stage is successful. It configures AWS access, installs necessary tools, and initiates the deployment to Elastic Beanstalk in the US East region.
 
-
-   ## Make sure to add the variables In Settings -> Secrets and Variables -> Actions
-      ![](https://lh7-us.googleusercontent.com/ZHNIKjipWya7GVyBfKtiNxI3VgnBBQdZyYIDmC2DNl16Ip8FnAY3Vn6nywofCSIWGh2-C4z-UKVZ-uDssMfqYxaHdYQ-YydDwmlA2HKdMGJZB7IhX6t5wgNA9TstNsyREv-AO_GpZQ01cARSNSmasSY)
-   ## Final Output
-      ![](https://lh7-us.googleusercontent.com/CkcHcUg7S2qmkmKdVUTEwkbJGqNs8FalqvSnwVu9lgTrmEKcRRIGUc5ZpyHMBMWU_cdcxQw-v62WN70uIhE6pr1r3f_8isBORz2hGEowMPsGC6bevnhmce3xA_xuHcIIwwSnqFYKt0TcHGAuyc5HVGY)
+## Make sure to add the variables In Settings -> Secrets and Variables -> Actions
+  ![](https://lh7-us.googleusercontent.com/ZHNIKjipWya7GVyBfKtiNxI3VgnBBQdZyYIDmC2DNl16Ip8FnAY3Vn6nywofCSIWGh2-C4z-UKVZ-uDssMfqYxaHdYQ-YydDwmlA2HKdMGJZB7IhX6t5wgNA9TstNsyREv-AO_GpZQ01cARSNSmasSY)
+## Final Output
+  ![](https://lh7-us.googleusercontent.com/CkcHcUg7S2qmkmKdVUTEwkbJGqNs8FalqvSnwVu9lgTrmEKcRRIGUc5ZpyHMBMWU_cdcxQw-v62WN70uIhE6pr1r3f_8isBORz2hGEowMPsGC6bevnhmce3xA_xuHcIIwwSnqFYKt0TcHGAuyc5HVGY)
 
