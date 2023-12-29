@@ -116,7 +116,7 @@ jobs:
       eb init -p docker Hanabi-demo
       eb create Hanabi-demo-env
       eb run --port 8081
-      eb open
+      eb deploy
 
    
  
