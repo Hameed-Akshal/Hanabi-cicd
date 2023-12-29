@@ -138,8 +138,8 @@ jobs:
           pip install awsebcli
       - name: Deploy to Elastic Beanstalk
         run: |
-          eb init
-          eb deploy
+          eb init -r us-east-1 -p docker Hanabi-demo
+          eb deploy Hanabi-demo-env 
 
   # steps:
   #  - name: Redeploy beanstalk
