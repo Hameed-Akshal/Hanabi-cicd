@@ -110,7 +110,7 @@ jobs:
      run: |
       aws elasticbeanstalk update-environment \
             --application-name Hanabi \
-            --environment-name  \
+            --environment-name Hanabi-env  \
             --version-label $GITHUB_RUN_NUMBER
 #      eb deploy Hanabi-env --region us-east-1
 
