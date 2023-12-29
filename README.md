@@ -46,77 +46,39 @@ Used python 3.8 version and chose rc-slim in order to reduce the size of the doc
 5. deploy.yml is used to execute CICD pipeline stages
    ```
    sast_scan:
-   name: Run Bandit Scan
-   runs-on: ubuntu-latest
-
-   steps:
-   - name: Checkout code
-     uses: actions/checkout@v2
-
-   - name: Set up Python
-     uses: actions/setup-python@v2
-     with:
-       python-version: 3.8
-
-   - name: Install Bandit
-     run: pip install bandit
-
-   - name: Run Bandit Scan
-     run: bandit -ll -ii -r . -f json -o bandit-report.json -vv
-
-   - name: Upload Artifact
-     uses: actions/upload-artifact@v3
-     if: always()
-     with:
-      name: bandit-findings
-      path: bandit-report.json
+     name: Run Bandit Scan
+     runs-on: ubuntu-latest
+  
+     steps:
+     - name: Checkout code
+       uses: actions/checkout@v2
+  
+     - name: Set up Python
+       uses: actions/setup-python@v2
+       with:
+         python-version: 3.8
+  
+     - name: Install Bandit
+       run: pip install bandit
+  
+     - name: Run Bandit Scan
+       run: bandit -ll -ii -r . -f json -o bandit-report.json -vv
+  
+     - name: Upload Artifact
+       uses: actions/upload-artifact@v3
+       if: always()
+       with:
+        name: bandit-findings
+        path: bandit-report.json
    ```
    This GitHub Actions workflow checks Python code for security issues using Bandit, saving the results as an artifact. It helps ensure the project's security during development.
 
    ```
     image_scan:
-   name: Build Image and Run Image Scan
-   runs-on: ubuntu-latest
-
-   steps:
-   - name: Checkout code
-     uses: actions/checkout@v2
-
-   - name: Set up Docker
-     uses: docker-practice/actions-setup-docker@v1
-     with:
-      docker_version: '20.10.7'
-
-   - name: Build Docker Image
-     run: docker build -f Dockerfile -t hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER .
-
-   - name: Docker Scout Scan
-     run: |
-       curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
-       script -q -e -c "bash install-scout.sh" /dev/null
-
-       echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
-
-       docker scout quickview
-        
-       docker scout cves 2> error_list.txt
-
-    - name: Upload Error List Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: error-list
-        path: error_list.txt
-
-   ```
-   The above workflow performs a security scan using Docker Scout. Scans vulnerabilities of dockerfile layer by layer, saving the results as an artifact. It helps ensure the project's security during development.
-
-   ```
-    push:
-    name: Build Image and Push Image 
-    runs-on: ubuntu-latest
-    needs: image_scan
+     name: Build Image and Run Image Scan
+     runs-on: ubuntu-latest
   
-    steps:
+     steps:
      - name: Checkout code
        uses: actions/checkout@v2
   
@@ -125,17 +87,55 @@ Used python 3.8 version and chose rc-slim in order to reduce the size of the doc
        with:
         docker_version: '20.10.7'
   
-     - name: Build and Push Docker Image with build tag
+     - name: Build Docker Image
+       run: docker build -f Dockerfile -t hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER .
+  
+     - name: Docker Scout Scan
        run: |
-        docker build -f Dockerfile -t hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER .
-        echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
-        docker push  hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER
-       
-     - name: Tag and Push Docker Image with latest tag
-       run: |
-        echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
-        docker tag  hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER hameedakshal/hanabi-py:latest
-        docker push hameedakshal/hanabi-py:latest
+         curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+         script -q -e -c "bash install-scout.sh" /dev/null
+  
+         echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
+  
+         docker scout quickview
+          
+         docker scout cves 2> error_list.txt
+  
+      - name: Upload Error List Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: error-list
+          path: error_list.txt
+
+   ```
+   The above workflow performs a security scan using Docker Scout. Scans vulnerabilities of dockerfile layer by layer, saving the results as an artifact. It helps ensure the project's security during development.
+
+   ```
+    push:
+      name: Build Image and Push Image 
+      runs-on: ubuntu-latest
+      needs: image_scan
+    
+      steps:
+       - name: Checkout code
+         uses: actions/checkout@v2
+    
+       - name: Set up Docker
+         uses: docker-practice/actions-setup-docker@v1
+         with:
+          docker_version: '20.10.7'
+    
+       - name: Build and Push Docker Image with build tag
+         run: |
+          docker build -f Dockerfile -t hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER .
+          echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
+          docker push  hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER
+         
+       - name: Tag and Push Docker Image with latest tag
+         run: |
+          echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
+          docker tag  hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER hameedakshal/hanabi-py:latest
+          docker push hameedakshal/hanabi-py:latest
 
    ```
    The above GitHub workflow uses Docker to package and share code. It builds and pushes two versions – one with a specific tag and another with the latest tag
