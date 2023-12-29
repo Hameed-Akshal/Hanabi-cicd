@@ -96,6 +96,12 @@ jobs:
    #    echo "[default]" >> ~/.aws/credentials
    #    echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
    #    echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+   - name: Install AWS CLI and Elastic Beanstalk CLI
+     run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+          sudo apt-get install -y python3-pip
+          pip3 install awsebcli
 
    - name: Deploy to Elastic Beanstalk
      env:
