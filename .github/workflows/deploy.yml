@@ -102,7 +102,9 @@ jobs:
           sudo apt-get install -y awscli
           sudo apt-get install -y python3-pip
           pip3 install awsebcli
-          pip3 install --upgrade awscli urllib3 botocore
+          pip3 install --upgrade awscli 
+          pip3 install --upgrade urllib3 
+          pip3 install --upgrade botocore
 
    # - name: Deploy to Elastic Beanstalk
    #   env:
