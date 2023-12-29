@@ -3,25 +3,25 @@ name: TEST
 on: [push]
 
 jobs:
- build:
-    runs-on: ubuntu-latest
+# build:
+    # runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    # steps:
+    # - name: Checkout code
+    #   uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
+    # - name: Set up Python
+    #   uses: actions/setup-python@v2
+    #   with:
+    #     python-version: 3.8
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+    # - name: Install dependencies
+    #   run: |
+    #     python -m pip install --upgrade pip
+    #     pip install -r requirements.txt
 
-    - name: Run Python application
-      run: python app.py
+    # - name: Run Python application
+    #   run: python app.py
 
       
  sast_scan:
@@ -64,7 +64,7 @@ jobs:
       docker_version: '20.10.7'
 
    - name: Build Docker Image
-     run: docker build -f Dockerfile -t myapp:latest .
+     run: docker build -f Dockerfile -t hameedakshal/hanabi-py:latest .
 
    - name: Docker Scout Scan
      run: |
@@ -74,4 +74,34 @@ jobs:
        echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
 
        docker scout quickview
+       
        docker scout cves
+
+   - name: Push Docker Image
+     run: |
+      echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
+      docker push hameedakshal/hanabi-py:latest 
+     
+   - name: Tag and Push Docker Image with built tag
+     run: |
+      echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
+      docker tag hameedakshal/hanabi-py:latest hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER
+      docker push hameedakshal/hanabi-py:$GITHUB_RUN_NUMBER 
+
+   - name: Configure AWS CLI
+     run: |
+      echo "[default]" >> ~/.aws/credentials
+      echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+      echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+
+   - name: Deploy to Elastic Beanstalk
+     run: |
+      eb deploy Hanabi-env --region us-east-1
+
+   
+ 
+    
+   
+
+
+   
