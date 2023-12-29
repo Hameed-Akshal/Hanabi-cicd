@@ -96,27 +96,41 @@ jobs:
    #    echo "[default]" >> ~/.aws/credentials
    #    echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
    #    echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
-   - name: Install AWS CLI and Elastic Beanstalk CLI
-     run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
-          sudo apt-get install -y python3-pip
-          pip3 install awsebcli
+   # - name: Install AWS CLI and Elastic Beanstalk CLI
+   #   run: |
+   #        sudo apt-get update
+   #        sudo apt-get install -y awscli
+   #        sudo apt-get install -y python3-pip
+   #        pip3 install awsebcli
 
-   - name: Deploy to Elastic Beanstalk
-     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-     run: |
-      aws --version
-      aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-      aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      aws configure set region us-east-1
+   # - name: Deploy to Elastic Beanstalk
+   #   env:
+   #    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+   #    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+   #   run: |
+   #    aws --version
+   #    aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+   #    aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+   #    aws configure set region us-east-1
 
-      eb init -p docker Hanabi-demo
-      eb create Hanabi-demo-env
-      eb run --port 8081
-      eb deploy
+   #    eb init -p docker Hanabi-demo
+   #    eb create Hanabi-demo-env
+   #    eb run --port 8081
+   #    eb deploy
+
+deploy:
+ runs-on: ubuntu-latest
+ needs: build_and_push
+
+ steps:
+  - name: Redeploy beanstalk
+    uses: ItsKarma/aws-cli@v1.70.0
+    with:
+      args: elasticbeanstalk update-environment --application-name Hanabi-demo --environment-name Hanabi-demo-env --version-label Hanabi-demo-app
+    env:
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    AWS_DEFAULT_REGION: "us-east-1"
 
    
  
