@@ -112,10 +112,12 @@ jobs:
       aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       aws configure set region us-east-1
+
+      VERSION_LABEL="v${GITHUB_RUN_NUMBER}"
       aws elasticbeanstalk update-environment \
             --application-name Hanabi \
             --environment-name Hanabi-env  \
-            --version-label $GITHUB_RUN_NUMBER
+            --version-label "$VERSION_LABEL"
 #      eb deploy Hanabi-env --region us-east-1
 
    
