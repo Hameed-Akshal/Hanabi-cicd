@@ -53,8 +53,14 @@ jobs:
        echo ${{secrets.REPO_PASSWORD}} | docker login -u ${{secrets.REPO_USER}} --password-stdin
 
        docker scout quickview
-       
-       docker scout cves
+
+       docker scout cves 2> error_list.txt
+
+   - name: Upload Error List Artifact
+     uses: actions/upload-artifact@v3
+     with:
+       name: error-list
+       path: error_list.txt
 
  push:
   name: Build Image and Push Image 
